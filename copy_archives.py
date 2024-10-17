@@ -7,58 +7,58 @@ from datetime import datetime, timedelta
 original_log_path = '/var/ossec/logs/archives/archives.log'
 copy_log_path = '/var/ossec/logs/archives/copy_archives.log'
 
-# Function to append new logs to the copy without duplicating older logs
-def update_copy():
+# Function to append new logs from the original to the copy
+def append_new_logs():
     with open(original_log_path, 'r') as original_log:
         original_lines = original_log.readlines()
 
+    # Load the current copy log to check what has already been copied
     if os.path.exists(copy_log_path):
         with open(copy_log_path, 'r') as copy_log:
-            copy_lines = copy_log.readlines()
+            copied_lines = copy_log.readlines()
     else:
-        copy_lines = []
+        copied_lines = []
 
-    # Append only the new lines
-    new_lines = original_lines[len(copy_lines):]
+    # Append only new lines that are not already in copy_archives.log
+    new_lines = original_lines[len(copied_lines):]
+
     with open(copy_log_path, 'a') as copy_log:
         copy_log.writelines(new_lines)
 
-# Function to process the copied log and find the first entry of the next day
+# Function to process the copied log and find entries for today
 def process_logs_and_send():
-    next_day_found = False
-    last_date = None
+    today = datetime.now().date()
     date_pattern = r'(\w{3} \d{1,2} \d{2}:\d{2}:\d{2})'  # Regex pattern to match the date format
+    today_logs = []
 
     with open(copy_log_path, 'r') as copy_log:
         for line in copy_log:
             match = re.search(date_pattern, line)
             if match:
                 log_date = datetime.strptime(match.group(1), '%b %d %H:%M:%S')
-                if log_date.day != datetime.now().day:
-                    next_day_found = True
-                    last_date = log_date
-                    break
+                if log_date.date() == today:
+                    today_logs.append(line)
 
-    if next_day_found:
-        # Create a new log file for the current day and send it to S3
-        date_str = (last_date - timedelta(days=1)).strftime('%m-%d')  # Previous day's date
+    # If there are log entries for today, send them to S3
+    if today_logs:
+        date_str = today.strftime('%m-%d')
         new_log_name = f'security-logs-archives-{date_str}.log'
 
+        # Create a new log file for today
         with open(new_log_name, 'w') as new_log:
-            with open(copy_log_path, 'r') as copy_log:
-                new_log.write(copy_log.read())
+            new_log.writelines(today_logs)
 
         # Send the new log to S3 using linode-cli
         command = f'/usr/local/bin/linode-cli obj put {new_log_name} security-logs/{date_str}'
         subprocess.run(command, shell=True)
 
-        # Clear the copied log file after sending
+        # Clear the copy log after sending
         open(copy_log_path, 'w').close()
 
 # Main function
 def main():
-    update_copy()
-    process_logs_and_send()
+    append_new_logs()  # Step to append only new logs
+    process_logs_and_send()  # Check for today's logs and send them
 
 if __name__ == "__main__":
     main()

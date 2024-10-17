@@ -1,7 +1,7 @@
 import os
 import subprocess
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Paths to logs
 original_log_path = '/var/ossec/logs/archives/archives.log'

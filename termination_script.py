@@ -1,7 +1,8 @@
 import os
 import re
 import signal
-from datetime import datetime, timedelta
+import subprocess  # This is necessary for pgrep command
+from datetime import datetime
 
 # Paths to the logs
 alerts_log_path = '/var/ossec/logs/alerts/copy_alerts.log'
@@ -27,8 +28,9 @@ def check_next_day_logs(log_path):
 def terminate_scripts():
     # Get the process IDs of the running scripts
     try:
-        alerts_pid = int(subprocess.check_output(["pgrep", "-f", "alerts_script.py"]).strip())
-        archives_pid = int(subprocess.check_output(["pgrep", "-f", "archives_script.py"]).strip())
+        # Adjust the pgrep command to match the executable names
+        alerts_pid = int(subprocess.check_output(["pgrep", "-f", "alerts_script.exe"]).strip())
+        archives_pid = int(subprocess.check_output(["pgrep", "-f", "archives_script.exe"]).strip())
         
         # Terminate both scripts
         os.kill(alerts_pid, signal.SIGTERM)

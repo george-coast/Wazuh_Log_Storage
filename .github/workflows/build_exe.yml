@@ -31,7 +31,7 @@ jobs:
         pyinstaller --onefile your_main_script.py
 
     - name: Upload EXE as artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: wazuh-log-scripts
         path: dist/your_main_script.exe

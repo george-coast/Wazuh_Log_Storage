@@ -1,4 +1,4 @@
-name: Build Executable
+name: Build EXE
 
 on:
   push:
@@ -8,11 +8,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Check out the repository
+      - name: Checkout repository
         uses: actions/checkout@v2
-        
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -22,15 +22,26 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install pyinstaller  # Add this line to install PyInstaller
 
-      - name: Build the executables
+      - name: Build EXE for alerts script
         run: |
           pyinstaller --onefile alerts_script.py
-          pyinstaller --onefile archives_script.py
-          pyinstaller --onefile termination_script.py
+          mv dist/alerts_script your_executable_path/alerts_script.exe  # Move the exe to a specific path
 
-      - name: Upload the artifacts
+      - name: Build EXE for archives script
+        run: |
+          pyinstaller --onefile archives_script.py
+          mv dist/archives_script your_executable_path/archives_script.exe  # Move the exe to a specific path
+
+      - name: Build EXE for termination script
+        run: |
+          pyinstaller --onefile termination_script.py
+          mv dist/termination_script your_executable_path/termination_script.exe  # Move the exe to a specific path
+
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: executables
-          path: dist/*.exe
+          path: your_executable_path/  # Update this to the path where you moved the exe files
+

@@ -29,8 +29,8 @@ def terminate_scripts():
     # Get the process IDs of the running scripts
     try:
         # Adjust the pgrep command to match the executable names
-        alerts_pid = int(subprocess.check_output(["pgrep", "-f", "alerts_script.exe"]).strip())
-        archives_pid = int(subprocess.check_output(["pgrep", "-f", "archives_script.exe"]).strip())
+        alerts_pid = int(subprocess.check_output(["pgrep", "-f", "alerts_script.py"]).strip())
+        archives_pid = int(subprocess.check_output(["pgrep", "-f", "archives_script.py"]).strip())
         
         # Terminate both scripts
         os.kill(alerts_pid, signal.SIGTERM)
